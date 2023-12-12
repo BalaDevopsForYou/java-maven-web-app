@@ -30,13 +30,30 @@ pipeline {
     }
 
     post {
-        success {
-            sh 'echo "unit test cases performed successfully"'
-            
+    success {
+        echo 'Unit test cases performed successfully'
+
+        slackSend(
+            channel: 'monitoring',
+            color: 'good', // 'good' is the color for success
+            message: "${JOB_NAME} - Build #${BUILD_NUMBER} - Status: ${currentBuild.result}",
+            teamDomain: 'devops-gangworkspace',
+            tokenCredentialId: 'JENKINS-SLACK'
+        )
+    }
+
+    failure {
+        echo 'Unit test cases failed'
+
+            slackSend(
+                channel: 'monitoring',
+                color: 'danger', // 'danger' is the color for failure
+                message: "${JOB_NAME} - Build #${BUILD_NUMBER} - Status: ${currentBuild.result}",
+                teamDomain: 'devops-gangworkspace',
+                tokenCredentialId: 'JENKINS-SLACK'
+            )
         }
-        failure {
-            sh 'echo "unit test cases failed"'
-        }
+
         always {
             echo "unit test cases application"
             emailext attachLog: true, body: '''Hi Team,
