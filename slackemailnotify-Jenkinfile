@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'MAVEN'
+    }
+
+    stages {
+        stage('git-clone') {
+            steps {
+                git credentialsId: 'jenkins-git', url: 'https://github.com/rishiranjan10/maven-web-app.git'
+            }
+        }
+
+        stage('maven build') {
+            steps {
+                script {
+                    sh 'mvn clean install'
+                }
+            }
+        }
+
+        stage('maven testcases') {
+            steps {
+                script {
+                    sh 'mvn clean test'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            sh 'echo "unit test cases performed successfully"'
+            
+        }
+        failure {
+            sh 'echo "unit test cases failed"'
+        }
+        always {
+            echo "unit test cases application"
+            emailext attachLog: true, body: '''Hi Team,
+
+            Please find the build details below.
+
+            $PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+
+            Check console output at $BUILD_URL to view the results.''', mimeType: 'text/html', replyTo: 'balu.pshell@gmail.com', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: 'balu.pshell@gmail.com'
+        }
+    }
+}
